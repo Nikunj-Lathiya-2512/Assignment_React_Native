@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Assignment",
+    "slug": "Assignment",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "newArchEnabled": true,
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*",
+      "^[a-z][a-z0-9+.-]*$"
+    ],
+    "android": {
+      "package": "com.anonymous.Assignment"
+    }
+  }
+}

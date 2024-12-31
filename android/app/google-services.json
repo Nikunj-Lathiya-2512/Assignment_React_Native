@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "138087292352",
+    "project_id": "assignment-react-native-b4886",
+    "storage_bucket": "assignment-react-native-b4886.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:138087292352:android:a5a2d1309adaaae92efc25",
+        "android_client_info": {
+          "package_name": "com.anonymous.Assignment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAU77bqMiWD5Hh6TuzXulgNVtRXO6higmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

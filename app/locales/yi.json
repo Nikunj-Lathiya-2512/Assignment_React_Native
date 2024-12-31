@@ -1,0 +1,19 @@
+{
+  "login": "היכנס",
+  "emailPlaceholder": "אימעיל",
+  "passwordPlaceholder": "סיסמא",
+  "loginButton": "היכנס",
+  "registerText": "ניט א קיין אקאונט? רעגיסטרירן",
+  "settings": "סעטטינגס",
+  "theme": "טעמע",
+  "select_theme": "קלייַבן דיין טעמע:",
+  "language": "שפּראַך",
+  "select_language": "קלייַבן דיין שפּראַך:",
+  "change_to_yiddish": "טוישן צו ייִדיש",
+  "change_to_english": "טוישן צו ענגליש",
+  "logout": "לאג אויס",
+  "confirm_logout": "באַשטעטיקן לאג אויס",
+  "logout_message": "ביסטו זיכער אַז דו ווילסט צו לאג אויס?",
+  "cancel": "באָטל מאַכן",
+  "ok": "אקעי"
+}
