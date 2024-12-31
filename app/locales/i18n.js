@@ -1,18 +1,18 @@
 import * as Localization from "expo-localization";
-import i18n from "i18n-js";
 
+import i18next from "i18next";
 // Import translations
 import en from "./en.json";
 import yi from "./yi.json";
 
 // Set up translations
-i18n.translations = {
+i18next.translations = {
   en,
   yi,
 };
 
 // Set the default language (fallback) and detect device language
-i18n.fallbacks = true;
-i18n.locale = Localization.locale;
+i18next.fallbacks = true;
+i18next.Locales = Localization.getLocales();
 
-export default i18n;
+export default i18next;

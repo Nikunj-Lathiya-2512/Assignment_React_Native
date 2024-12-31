@@ -14,7 +14,6 @@ import { useNavigation } from "@react-navigation/native";
 import { auth } from "@/app/Services/config";
 import * as SecureStore from "expo-secure-store";
 import CustomHeader from "@/app/CustomViews/CustomHeader";
-import i18n from "@/app/i18n";
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -27,23 +26,22 @@ const SettingsScreen: React.FC = () => {
     setTheme(newTheme);
   };
 
-  // Change language
+  // Change language between English and Yiddish
   const handleLanguageChange = () => {
     const newLanguage = language === "en" ? "yi" : "en";
     setLanguage(newLanguage);
-    i18n.locale = newLanguage; // Update i18n locale
   };
 
   // Confirm logout
   const confirmLogout = () => {
-    Alert.alert(i18n.t("confirm_logout"), i18n.t("logout_message"), [
+    Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
       {
-        text: i18n.t("cancel"),
+        text: "Cancel",
         onPress: () => console.log("Logout cancelled"),
         style: "cancel",
       },
       {
-        text: i18n.t("ok"),
+        text: "OK",
         onPress: handleLogout,
       },
     ]);
@@ -114,31 +112,37 @@ const SettingsScreen: React.FC = () => {
   return (
     <View style={themedStyles.container}>
       <CustomHeader
-        title={i18n.t("settings")}
+        title={language === "en" ? "Settings" : "סעטטינגס"} // Yiddish translation
         showBackButton={true}
         showSettingIcon={false}
       />
 
       {/* Theme Setting Card */}
       <View style={themedStyles.card}>
-        <Text style={themedStyles.cardTitle}>{i18n.t("theme")}</Text>
+        <Text style={themedStyles.cardTitle}>
+          {language === "en" ? "Theme" : "טעמע"} {/* Yiddish translation */}
+        </Text>
         <View style={themedStyles.cardContent}>
-          <Text style={themedStyles.cardText}>{i18n.t("select_theme")}</Text>
+          <Text style={themedStyles.cardText}>
+            {language === "en" ? "Select your theme:" : "קלייַבן דיין טעמע:"}
+          </Text>
           <Switch value={isDarkTheme} onValueChange={handleThemeChange} />
         </View>
       </View>
 
       {/* Language Setting Card */}
       <View style={themedStyles.card}>
-        <Text style={themedStyles.cardTitle}>{i18n.t("language")}</Text>
+        <Text style={themedStyles.cardTitle}>
+          {language === "en" ? "Language" : "שפּראַך"}
+        </Text>
         <View style={themedStyles.cardContent}>
-          <Text style={themedStyles.cardText}>{i18n.t("select_language")}</Text>
+          <Text style={themedStyles.cardText}>
+            {language === "en"
+              ? "Select your language:"
+              : "קלייַבן דיין שפּראַך:"}
+          </Text>
           <Button
-            title={
-              language === "en"
-                ? i18n.t("change_to_yiddish")
-                : i18n.t("change_to_english")
-            }
+            title={language === "en" ? "Change to Yiddish" : "טוישן צו ענגליש"}
             onPress={handleLanguageChange}
             color={isDarkTheme ? "#1E90FF" : "#007BFF"}
           />
@@ -149,7 +153,7 @@ const SettingsScreen: React.FC = () => {
       <View style={themedStyles.card}>
         <TouchableOpacity onPress={confirmLogout}>
           <Text style={[themedStyles.cardText, themedStyles.logoutText]}>
-            {i18n.t("logout")}
+            {language === "en" ? "Logout" : "לאג אויס"} {/* Yiddish */}
           </Text>
         </TouchableOpacity>
       </View>
