@@ -11,23 +11,27 @@ import {
 import CustomHeader from "@/app/CustomViews/CustomHeader";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { database } from "../../Services/config"; // Import your Firebase config
-import { ref, push, onValue, remove } from "firebase/database";
+import { ref, push, onValue, update, remove } from "firebase/database";
 import { useRoute } from "@react-navigation/native";
+import { UserContext } from "@/app/Context/UserContext";
 
-// Chat Screen Component
 const ConversationHistoryScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext) || {};
   const isDarkTheme = theme === "dark";
 
-  const route = useRoute(); // Access route parameters
-  const { userName} = route.params || {}; // Destructure userName and userEmail
+  const route = useRoute();
+  const { userName: receiverName } = route.params || {}; // Destructure receiver's name
 
   const [chatData, setChatData] = useState<any[]>([]);
   const [message, setMessage] = useState<string>("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null); // Track the message being edited
 
-  const messagesRef = ref(database, "messages"); // Firebase database reference
+  const { user } = useContext(UserContext); // Fetch user details from UserContext
+  const currentUser = user?.name || ""; // Default to "Unknown User" if no user is found
 
-  // Fetch messages from Firebase
+  const messagesRef = ref(database, "messages");
+
+  // Fetch messages and filter by sender and receiver
   useEffect(() => {
     const unsubscribe = onValue(messagesRef, (snapshot) => {
       const data = snapshot.val();
@@ -37,24 +41,54 @@ const ConversationHistoryScreen: React.FC = () => {
             ...data[key],
           }))
         : [];
-      setChatData(formattedData.reverse()); // Reverse to show recent messages at the bottom
+
+      // Filter messages for the current sender and receiver
+      const filteredMessages = formattedData.filter(
+        (msg) =>
+          (msg.sender === currentUser && msg.receiver === receiverName) ||
+          (msg.sender === receiverName && msg.receiver === currentUser)
+      );
+
+      setChatData(filteredMessages.reverse()); // Reverse to show the most recent message at the bottom
     });
 
-    return () => unsubscribe(); // Clean up listener on unmount
-  }, []);
+    return () => unsubscribe();
+  }, [currentUser, receiverName]);
 
-  // Send a new message
+  // Send a new message or update an existing one
   const sendMessage = async () => {
     if (message.trim()) {
-      const newMessage = {
-        sender: "Alice", // Replace with the current user's name or ID
-        content: message,
-        timestamp: new Date().toLocaleTimeString(),
-      };
+      if (editingMessageId) {
+        // Update the existing message
+        const messageRef = ref(database, `messages/${editingMessageId}`);
+        await update(messageRef, {
+          content: message,
+          timestamp: new Date().toLocaleTimeString(),
+          edited: true, // Mark the message as edited
+        });
 
-      await push(messagesRef, newMessage); // Push message to Firebase
+        setEditingMessageId(null); // Reset editing state
+      } else {
+        // Create a new message
+        const newMessage = {
+          sender: currentUser, // Dynamic sender
+          receiver: receiverName, // Receiver selected from the user list
+          content: message,
+          timestamp: new Date().toLocaleTimeString(),
+          edited: false, // New messages are not edited
+        };
+
+        await push(messagesRef, newMessage); // Push message to Firebase
+      }
+
       setMessage(""); // Clear input field
     }
+  };
+
+  // Edit a message
+  const editMessage = (item: any) => {
+    setMessage(item.content); // Pre-fill the input with the existing message
+    setEditingMessageId(item.id); // Set the ID of the message being edited
   };
 
   // Delete a message
@@ -77,10 +111,23 @@ const ConversationHistoryScreen: React.FC = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => {
-    const isSentByMe = item.sender === "Alice"; // Adjust logic based on the current user
+    const isSentByMe = item.sender === currentUser;
     return (
       <TouchableOpacity
-        onLongPress={() => deleteMessage(item.id)} // Handle long press to delete message
+        onLongPress={() =>
+          Alert.alert("Message Options", "What would you like to do?", [
+            {
+              text: "Edit",
+              onPress: () => editMessage(item), // Edit the message
+            },
+            {
+              text: "Delete",
+              onPress: () => deleteMessage(item.id), // Delete the message
+              style: "destructive",
+            },
+            { text: "Cancel", style: "cancel" },
+          ])
+        }
         style={[
           styles.messageContainer,
           isSentByMe ? styles.sentMessage : styles.receivedMessage,
@@ -110,6 +157,12 @@ const ConversationHistoryScreen: React.FC = () => {
             ]}
           >
             {item.content}
+            {item.edited && (
+              <Text style={[styles.editedTag, { color: "#888888" }]}>
+                {" "}
+                (edited)
+              </Text>
+            )}
           </Text>
           <Text
             style={[
@@ -132,7 +185,7 @@ const ConversationHistoryScreen: React.FC = () => {
       ]}
     >
       <CustomHeader
-        title={userName}
+        title={receiverName} // Display the receiver's name
         showBackButton={true}
         showSettingIcon={false}
       />
@@ -151,13 +204,17 @@ const ConversationHistoryScreen: React.FC = () => {
               color: isDarkTheme ? "#E0E0E0" : "#000000",
             },
           ]}
-          placeholder="Type a message..."
+          placeholder={
+            editingMessageId ? "Edit your message..." : "Type a message..."
+          }
           placeholderTextColor={isDarkTheme ? "#AAAAAA" : "#888888"}
           value={message}
           onChangeText={(text) => setMessage(text)}
         />
         <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={styles.sendButtonText}>
+            {editingMessageId ? "Update" : "Send"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -198,6 +255,10 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 16,
     marginVertical: 5,
+  },
+  editedTag: {
+    fontSize: 12,
+    fontStyle: "italic",
   },
   timestamp: {
     fontSize: 12,

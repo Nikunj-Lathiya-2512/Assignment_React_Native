@@ -13,13 +13,16 @@ import { LanguageProvider } from "./Context/LanguageConetext";
 
 import { I18nextProvider } from "react-i18next";
 import i18next from "i18next";
+import { UserProvider } from "./Context/UserContext";
 
 
 const Stack = createStackNavigator();
 
 function App() {
   return (
+    
     // <I18nextProvider i18n={i18next}>
+<UserProvider>
     <ThemeProvider>
       <LanguageProvider>
         <Stack.Navigator
@@ -60,6 +63,7 @@ function App() {
         </Stack.Navigator>
       </LanguageProvider>
     </ThemeProvider>
+    </UserProvider>
     // </I18nextProvider>
   );
 }

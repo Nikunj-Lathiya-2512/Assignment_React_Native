@@ -159,6 +159,7 @@ const lightStyles = StyleSheet.create({
   input: {
     marginBottom: 12,
     backgroundColor: "#f9f9f9", // Light input background
+    color:'#000'
   },
   error: {
     color: "red",
@@ -184,12 +185,12 @@ const darkStyles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    color: "#ffffff", // Dark text color
+    color: "#fff", // Dark text color
   },
   input: {
     marginBottom: 12,
     backgroundColor: "#333", // Dark input background
-    color: "#fff", // Dark input text color
+    color: "#ffffff", // Dark input text color
   },
   error: {
     color: "red",
