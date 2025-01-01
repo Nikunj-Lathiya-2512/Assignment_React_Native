@@ -5,17 +5,16 @@ import { Controller, useForm } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
 import { ThemeContext } from "@/app/Context/ThemeContext";
 
-// Import necessary functions from Firebase v9+
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { firebaseConfig, firestore } from "../../Services/config";
 import { doc, setDoc } from "firebase/firestore";
 
 import Loader from '../../Constant/Loader';
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig); // Initialize app only once
-const auth = getAuth(app); // Get the auth instance
+// Initialize Firebase (ensure singleton)
+const app = initializeApp(firebaseConfig); 
+const auth = getAuth(app);
 
 type FormData = {
   name: string;
@@ -24,56 +23,42 @@ type FormData = {
 };
 
 const RegisterScreen = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>();
+  const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-
-  // Get the current theme from the context
   const { theme } = useContext(ThemeContext);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     console.log("Form Data Submitted:", data);
 
-    const { name, email, password } = data; // Destructure form data
-
-    console.log('Data--->',JSON.stringify(data))
+    const { name, email, password } = data;
 
     try {
-      // Create user with email and password using Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log("User Registered Successfully:", userCredential.user);
+      // Create the user with email and password
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      // Get the user ID from the created user
-      const userId = userCredential.user.uid;
+      // Update the user's display name
+      await updateProfile(user, { displayName: name });
 
-      // Reference to the Firestore 'users' collection and save user data
-      const userDocRef = doc(firestore, "users", userId); // Use Firestore's 'doc' to create a new document
+      console.log("User registered successfully:", user);
 
+      // Save user details in Firestore
+      const userId = user.uid;
+      const userDocRef = doc(firestore, "users", userId);
       await setDoc(userDocRef, {
-        name: name, // Store the name
-        email: email, // Store the email
-        password: password, // WARNING: Storing passwords as plain text is a security risk! Encrypt this in a real app.
-        createdAt: new Date().toISOString(), // Timestamp for user creation
+        name,
+        email,
+        createdAt: new Date().toISOString(),
       });
 
       console.log("User details successfully stored in Firestore!");
-
-      // Navigate to LoginScreen after successful registration
       navigation.navigate("LoginScreen");
-
-      setLoading(false); // Stop the loading indicator
-    } catch (error: any) {
-      console.error("Error during registration:", error.message);
-      setLoading(false); // Stop the loading indicator
+    } catch (error) {
+      console.error("Error registering user:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -151,9 +136,7 @@ const RegisterScreen = () => {
           />
         )}
       />
-      {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
-      )}
+      {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
 
       {/* Submit Button */}
       <Button title="Register" onPress={handleSubmit(onSubmit)} />
@@ -165,8 +148,8 @@ const RegisterScreen = () => {
     </View>
   );
 };
+export default RegisterScreen;
 
-// Light theme styles
 const lightStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -232,5 +215,3 @@ const darkStyles = StyleSheet.create({
     color: "#1e90ff", // Blue text for the login link
   },
 });
-
-export default RegisterScreen;

@@ -10,7 +10,6 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth"; // Firebase
 import { firebaseConfig,firestore} from "../../Services/config"; // Assuming firebaseConfig is exported from your config file
 import { initializeApp } from "firebase/app";
 import * as SecureStore from "expo-secure-store";
-import { collection, doc, setDoc } from "firebase/firestore";
 import Loader from "../../Constant/Loader";
 
 // Initialize Firebase

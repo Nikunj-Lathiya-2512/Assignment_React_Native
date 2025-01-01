@@ -1,26 +1,19 @@
 {
   "expo": {
-    "name": "Assignment",
-    "slug": "Assignment",
-    "platforms": [
-      "ios",
-      "android"
-    ],
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "newArchEnabled": true,
-    "icon": "./assets/images/icon.png",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+    "name": "YourApp",
+    "slug": "your-app",
+    "platforms": ["ios", "android"],
+    "projectId": "2737dea5-5750-4ac4-8d60-e17f54f89824", 
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#000000"
     },
-    "assetBundlePatterns": [
-      "**/*",
-      "^[a-z][a-z0-9+.-]*$"
-    ],
+    "ios": {
+      "bundleIdentifier": "com.example.yourapp",
+      "buildNumber": "1.0.0"
+    },
     "android": {
-      "package": "com.anonymous.Assignment"
+      "versionCode": 1
     }
   }
 }

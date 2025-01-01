@@ -43,11 +43,8 @@ const UserListScreen: React.FC = () => {
               email: doc.data().email || "Email",
             }))
             .filter((user) => user.email !== loggedInUserEmail); // Exclude the logged-in user
-
-          console.log("Filtered Users:", userList);
           setUsers(userList);
         } else {
-          console.log("No users found.");
           setUsers([]);
         }
       } catch (error) {

@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, User as FirebaseUser } from "firebase/auth";
+
 export interface User {
   id: string;
   name: string;
@@ -23,22 +24,23 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Effect to fetch logged-in user dynamically
   useEffect(() => {
-    const unsubscribe = getAuth().onAuthStateChanged((firebaseUser) => {
-        console.log('----',firebaseUser)
-      if (firebaseUser) {
-        setUser({
-          id: firebaseUser.uid,
-          name: firebaseUser.displayName || "",
-          email: firebaseUser.email || "No Email",
-        });
-      } else {
-        setUser(null); // User logged out
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged(
+      (firebaseUser: FirebaseUser | null) => {
+        if (firebaseUser) {
+          setUser({
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || "No Name", // Fallback if display name is not set
+            email: firebaseUser.email || "No Email",
+          });
+        } else {
+          setUser(null); // User is logged out
+        }
       }
-    });
+    );
 
-    return () => unsubscribe(); // Cleanup subscription
+    return () => unsubscribe();
   }, []);
 
   return (
