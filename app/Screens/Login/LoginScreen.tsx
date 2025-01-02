@@ -1,20 +1,26 @@
 import React, { useContext, useState } from "react";
-import { View, Text, TouchableOpacity, Button, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Button, Alert } from "react-native";
 import { TextInput } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
 import { ThemeContext } from "@/app/Context/ThemeContext";
 
-// Import necessary Firebase functions
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"; // Firebase v9+ modular import
-import { firebaseConfig,firestore} from "../../Services/config"; // Assuming firebaseConfig is exported from your config file
+// Firebase imports
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { firebaseConfig } from "../../Services/config";
 import { initializeApp } from "firebase/app";
 import * as SecureStore from "expo-secure-store";
 import Loader from "../../Constant/Loader";
+import { LanguageContext } from "../../Context/LanguageConetext";
+import { translations } from "../../locales/language";
+
+// Import styles
+import lightStyles from "../../CommonStyles/lightStyles";
+import darkStyles from "../../CommonStyles/darkStyles";
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig); // Initialize Firebase app
-const auth = getAuth(app); // Get Firebase Auth instance
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 type FormData = {
   email: string;
@@ -22,6 +28,9 @@ type FormData = {
 };
 
 const LoginScreen = () => {
+  const { language } = useContext(LanguageContext) || {};
+  const t = translations[language];
+  const { theme } = useContext(ThemeContext); // Get current theme from context
   const {
     control,
     handleSubmit,
@@ -30,59 +39,47 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
-  // Get the current theme from the context
-  const { theme } = useContext(ThemeContext);
+  // Dynamically set styles based on theme
+  const styles = theme === "light" ? lightStyles : darkStyles;
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    console.log(data);
-
     const { email, password } = data;
 
     try {
-      // Use Firebase sign-in method
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
       setLoading(false);
-      const token = await userCredential.user.getIdToken(); // Get the Firebase access token
+      const token = await userCredential.user.getIdToken();
       await SecureStore.setItemAsync("userToken", token);
 
-      // Store user details in Firestore
-      const user = userCredential.user;
       navigation.navigate("UserListScreen");
     } catch (error: any) {
-      console.error("Error signing in: ", error.message);
+      Alert.alert("", t.errorMessage || error.message);
       setLoading(false);
-      // Show an error message or handle error accordingly
     }
   };
-   
-  // Define dynamic styles based on the selected theme
-  const styles = theme === "light" ? lightStyles : darkStyles;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-
+    <View style={styles.loginContainer}>
+      <Text style={styles.title}>{t.login}</Text>
       {loading && <Loader />}
-      
-      {/* Email Input */}
       <Controller
         control={control}
         name="email"
         rules={{
-          required: "Email is required",
+          required: t.emailRequired,
           pattern: {
             value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-            message: "Invalid email format",
+            message: t.invalidEmailFormat,
           },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label="Email"
+            label={t.email}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -93,21 +90,19 @@ const LoginScreen = () => {
         )}
       />
       {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
-
-      {/* Password Input */}
       <Controller
         control={control}
         name="password"
         rules={{
-          required: "Password is required",
+          required: t.passwordRequired,
           minLength: {
             value: 6,
-            message: "Password should be at least 6 characters long",
+            message: t.passwordMinLength,
           },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label="Password"
+            label={t.password}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -120,86 +115,20 @@ const LoginScreen = () => {
       {errors.password && (
         <Text style={styles.error}>{errors.password.message}</Text>
       )}
-
-      {/* Submit Button */}
       <Button
-        title="Login"
+        title={t.login}
         onPress={handleSubmit(onSubmit)}
         disabled={loading}
       />
-
-      {/* Navigation to Register screen */}
       <TouchableOpacity
         onPress={() => {
           navigation.navigate("RegisterScreen");
         }}
       >
-        <Text style={styles.registerText}>Don't have an account? Register</Text>
+        <Text style={styles.registerText}>{t.dontHaveAccount}</Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-// Light theme styles
-const lightStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 16,
-    backgroundColor: "#fff", // Light background
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#000", // Light text color
-  },
-  input: {
-    marginBottom: 12,
-    backgroundColor: "#f9f9f9", // Light input background
-    color:'#000'
-  },
-  error: {
-    color: "red",
-    fontSize: 12,
-  },
-  registerText: {
-    marginTop: 10,
-    textAlign: "center",
-    color: "blue",
-  },
-});
-
-// Dark theme styles
-const darkStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 16,
-    backgroundColor: "#121212", // Dark background
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#fff", // Dark text color
-  },
-  input: {
-    marginBottom: 12,
-    backgroundColor: "#333", // Dark input background
-    color: "#ffffff", // Dark input text color
-  },
-  error: {
-    color: "red",
-    fontSize: 12,
-  },
-  registerText: {
-    marginTop: 10,
-    textAlign: "center",
-    color: "#1e90ff", // Blue text for the register link
-  },
-});
 
 export default LoginScreen;

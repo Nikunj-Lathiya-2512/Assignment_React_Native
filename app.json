@@ -1,12 +1,15 @@
 {
   "expo": {
-    "name": "YourApp",
-    "slug": "your-app",
+    "name": "Assignment",
+    "slug": "Assignment",
     "platforms": ["ios", "android"],
-    "projectId": "2737dea5-5750-4ac4-8d60-e17f54f89824", 
-    "notification": {
-      "icon": "./assets/icon.png",
-      "color": "#000000"
+    "plugins": ["expo-localization"],
+    "extra": {
+      "eas": {
+        "projectId": "2737dea5-5750-4ac4-8d60-e17f54f89824",
+        "supportsRTL": true,
+        "forcesRTL": true
+      }
     },
     "ios": {
       "bundleIdentifier": "com.example.yourapp",
@@ -17,3 +20,4 @@
     }
   }
 }
+

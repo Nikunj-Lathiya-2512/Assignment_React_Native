@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Platform,
 } from "react-native";
 import CustomHeader from "@/app/CustomViews/CustomHeader";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -14,14 +15,23 @@ import { database } from "../../Services/config"; // Import your Firebase config
 import { ref, push, onValue, update, remove, get } from "firebase/database";
 import { useRoute } from "@react-navigation/native";
 import { UserContext } from "@/app/Context/UserContext";
+import * as Device from "expo-device";
+
 import * as Permissions from "expo-permissions";
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { LanguageContext } from "../../Context/LanguageConetext";
+import { translations } from "../../locales/language";
+
 
 
 const ConversationHistoryScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext) || {};
   const isDarkTheme = theme === "dark";
-
+  
+  const { language, setLanguage } = useContext(LanguageContext) || {};
+  const t = translations[language]; // Get translations for the current language
+  
   const route = useRoute();
   const { userName: receiverName } = route.params || {}; // Destructure receiver's name
 
@@ -35,8 +45,66 @@ const ConversationHistoryScreen: React.FC = () => {
   const messagesRef = ref(database, "messages");
 
   // Fetch messages and filter by sender and receiver and permission for notification
+  useEffect(() => {
+
+    const unsubscribe = onValue(messagesRef, (snapshot) => {
+      const data = snapshot.val();
+      const formattedData = data
+        ? Object.keys(data).map((key) => ({
+            id: key,
+            ...data[key],
+          }))
+        : [];
+
+      // Filter messages for the current sender and receiver
+      const filteredMessages = formattedData.filter(
+        (msg) =>
+          (msg.sender === currentUser && msg.receiver === receiverName) ||
+          (msg.sender === receiverName && msg.receiver === currentUser)
+      );
+
+      setChatData(filteredMessages.reverse()); // Reverse to show the most recent message at the bottom
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, receiverName]);
 
   useEffect(() => {
+
+
+      const requestNotificationPermissions = async () => {
+        try {
+          // Request notification permissions
+          const { status } = await Notifications.requestPermissionsAsync();
+
+          if (status === "granted") {
+            // Get the Expo project ID from Constants
+            const projectId =
+              Constants?.expoConfig?.extra?.eas?.projectId ??
+              Constants?.easConfig?.projectId;
+
+            if (!projectId) {
+              return;
+            }
+
+            // Fetch the push token
+            const { data: pushToken } = await Notifications.getExpoPushTokenAsync({
+              projectId,
+            });
+            console.log("Notification permissions granted");
+            console.log("Push Token:", pushToken);
+
+            // You can store the token for further use (e.g., sending to your backend)
+            storeReceiverPushToken(pushToken);
+
+          } else {
+            console.log("Notification permissions denied");
+            alert("Notification permissions denied");
+          }
+        } catch (error) {
+          alert("Error requesting notification permissions");
+        }
+      };
 
     requestNotificationPermissions();
 
@@ -62,36 +130,14 @@ const ConversationHistoryScreen: React.FC = () => {
     return () => unsubscribe();
   }, [currentUser, receiverName]);
 
-  const requestNotificationPermissions = async () => {
-    try {
-      // Ask for permission to receive notifications
-      const { status } = await Notifications.requestPermissionsAsync();
-
-      // Check if permission is granted
-      if (status === "granted") {
-        console.log("Notification permissions granted");
-        const token = await Notifications.getExpoPushTokenAsync();
-        console.log("Push Token:", token.data);
-
-        // Store the token (you can send it to your backend or store it locally)
-        storeReceiverPushToken(token.data); // Function to store token for later use
-      } else {
-        console.log("Notification permissions not granted");
-        alert("You need to enable notification permissions!");
-      }
-    } catch (error) {
-      console.error("Error requesting notification permissions:", error);
-    }
-  };
 
   const storeReceiverPushToken = async (token: string) => {
-    const userRef = ref(database, `users/${receiverName}/pushToken`);
+    const userRef = ref(database, `users/${receiverName}/${push}`);
     await update(userRef, { pushToken: token }); // Ensure you're storing the token at the correct path
   };
 
   const getReceiverPushToken = async (receiver: string) => {
     if (!receiver) {
-      console.error("Receiver name is missing.");
       return null;
     }
     try {
@@ -105,7 +151,6 @@ const ConversationHistoryScreen: React.FC = () => {
         return null;
       }
     } catch (error) {
-      console.error("Error retrieving receiver's push token:", error);
       return null;
     }
   };
@@ -113,18 +158,19 @@ const ConversationHistoryScreen: React.FC = () => {
   // Send push notification to the receiver
  const sendPushNotification = async (receiver: string, messageData: any) => {
    try {
+
      const receiverPushToken = await getReceiverPushToken(receiver);
-     if (receiverPushToken ) {
-       // Prepare the notification body
+     if (receiverPushToken && receiverPushToken.pushToken) {
+
        const notificationBody = {
-         to: receiverPushToken.pushToken, // This should be a string
-         sound: "default",
+         to: receiverPushToken.pushToken, 
+         sound: "default", 
          title: `${messageData.sender} sent you a message`,
-         body: messageData.content,
-         data: { messageData },
+         body: messageData.content, 
+         data: { messageData }, 
        };
 
-       // Send the notification via Expo's push notification service
+       // Send the notification via Expo's push service
        const response = await fetch("https://exp.host/--/api/v2/push/send", {
          method: "POST",
          headers: {
@@ -134,11 +180,12 @@ const ConversationHistoryScreen: React.FC = () => {
          body: JSON.stringify(notificationBody),
        });
 
+       // Handle response from Expo Push API
        if (!response.ok) {
          const errorBody = await response.json();
-         console.error("Error response from Expo Push API:", errorBody);
          throw new Error("Failed to send notification.");
        }
+
        console.log("Notification sent successfully.");
      } else {
        console.warn(
@@ -147,7 +194,6 @@ const ConversationHistoryScreen: React.FC = () => {
        );
      }
    } catch (error) {
-     console.error("Error sending push notification:", error);
    }
  };
 
@@ -200,12 +246,12 @@ const ConversationHistoryScreen: React.FC = () => {
   // Delete a message
   const deleteMessage = (messageId: string) => {
     Alert.alert(
-      "Delete Message",
-      "Are you sure you want to delete this message?",
+      t.deleteMessage, // Translated "Delete Message"
+      t.deleteConfirmation, // Translated "Are you sure you want to delete this message?"
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t.delete, // Translated "Delete"
           style: "destructive",
           onPress: async () => {
             const messageRef = ref(database, `messages/${messageId}`);
@@ -216,30 +262,35 @@ const ConversationHistoryScreen: React.FC = () => {
     );
   };
 
+
   const renderItem = ({ item }: { item: any }) => {
     const isSentByMe = item.sender === currentUser;
 
     const handleLongPress = () => {
       if (isSentByMe) {
         Alert.alert(
-          "Message Options",
-          "Choose an action",
+          t.messageOptions, 
+          t.chooseAction, 
           [
             {
-              text: "Edit",
+              text: t.edit, 
               onPress: () => editMessage(item),
             },
             {
-              text: "Delete",
+              text: t.delete, 
               onPress: () => deleteMessage(item.id),
               style: "destructive",
             },
-            { text: "Cancel", style: "cancel" },
+            {
+              text: t.cancel, 
+              style: "cancel",
+            },
           ],
           { cancelable: true }
         );
       }
     };
+
 
     return (
       <TouchableOpacity onLongPress={handleLongPress}>
@@ -330,7 +381,9 @@ const ConversationHistoryScreen: React.FC = () => {
             },
           ]}
           placeholder={
-            editingMessageId ? "Edit your message..." : "Type a message..."
+            editingMessageId
+              ? t.editMessagePlaceholder
+              : t.typeMessagePlaceholder
           }
           placeholderTextColor={isDarkTheme ? "#AAAAAA" : "#888888"}
           value={message}
@@ -338,7 +391,7 @@ const ConversationHistoryScreen: React.FC = () => {
         />
         <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
           <Text style={styles.sendButtonText}>
-            {editingMessageId ? "Update" : "Send"}
+            {editingMessageId ? t.update : t.send}
           </Text>
         </TouchableOpacity>
       </View>

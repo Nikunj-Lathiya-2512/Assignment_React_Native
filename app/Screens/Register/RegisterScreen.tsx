@@ -1,19 +1,28 @@
 import React, { useContext, useState } from "react";
-import { View, Text, TouchableOpacity, Button, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Button, Alert } from "react-native";
 import { TextInput } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
 import { ThemeContext } from "@/app/Context/ThemeContext";
 
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 import { firebaseConfig, firestore } from "../../Services/config";
 import { doc, setDoc } from "firebase/firestore";
+import Loader from "../../Constant/Loader";
+import { LanguageContext } from "../../Context/LanguageConetext";
+import { translations } from "../../locales/language";
 
-import Loader from '../../Constant/Loader';
+// Import styles
+import lightStyles from "../../CommonStyles/lightStyles";
+import darkStyles from "../../CommonStyles/darkStyles";
 
 // Initialize Firebase (ensure singleton)
-const app = initializeApp(firebaseConfig); 
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 type FormData = {
@@ -23,26 +32,34 @@ type FormData = {
 };
 
 const RegisterScreen = () => {
-  const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const { language } = useContext(LanguageContext) || {};
+  const t = translations[language]; // Get translations for the current language
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    console.log("Form Data Submitted:", data);
 
     const { name, email, password } = data;
 
     try {
       // Create the user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       // Update the user's display name
       await updateProfile(user, { displayName: name });
-
-      console.log("User registered successfully:", user);
 
       // Save user details in Firestore
       const userId = user.uid;
@@ -53,31 +70,30 @@ const RegisterScreen = () => {
         createdAt: new Date().toISOString(),
       });
 
-      console.log("User details successfully stored in Firestore!");
       navigation.navigate("LoginScreen");
-    } catch (error) {
-      console.error("Error registering user:", error);
+    } catch (error: any) {
+      Alert.alert("", t.errorMessage || error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  // Dynamically use styles based on the theme
   const styles = theme === "light" ? lightStyles : darkStyles;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <View style={styles.loginContainer}>
+      <Text style={styles.title}>{t.register}</Text>
 
       {loading && <Loader />}
 
-      {/* Name Input */}
       <Controller
         control={control}
         name="name"
-        rules={{ required: "Name is required" }}
+        rules={{ required: t.nameRequired }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label="Name"
+            label={t.name}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -88,20 +104,19 @@ const RegisterScreen = () => {
       />
       {errors.name && <Text style={styles.error}>{errors.name.message}</Text>}
 
-      {/* Email Input */}
       <Controller
         control={control}
         name="email"
         rules={{
-          required: "Email is required",
+          required: t.emailRequired,
           pattern: {
             value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-            message: "Invalid email format",
+            message: t.invalidEmailFormat,
           },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label="Email"
+            label={t.email}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -113,20 +128,19 @@ const RegisterScreen = () => {
       />
       {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
 
-      {/* Password Input */}
       <Controller
         control={control}
         name="password"
         rules={{
-          required: "Password is required",
+          required: t.passwordRequired,
           minLength: {
             value: 6,
-            message: "Password should be at least 6 characters long",
+            message: t.passwordMinLength,
           },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label="Password"
+            label={t.password}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -136,82 +150,17 @@ const RegisterScreen = () => {
           />
         )}
       />
-      {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
+      {errors.password && (
+        <Text style={styles.error}>{errors.password.message}</Text>
+      )}
 
-      {/* Submit Button */}
-      <Button title="Register" onPress={handleSubmit(onSubmit)} />
+      <Button title={t.register} onPress={handleSubmit(onSubmit)} />
 
-      {/* Navigation to Login screen */}
       <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
-        <Text style={styles.loginText}>Already have an account? Login</Text>
+        <Text style={styles.loginText}>{t.alreadyHaveAccount}</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
 export default RegisterScreen;
-
-const lightStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 16,
-    backgroundColor: "#fff", // Light background
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#000", // Light text color
-  },
-  input: {
-    marginBottom: 12,
-    backgroundColor: "#f9f9f9", // Light input background
-  },
-  button: {
-    marginTop: 16,
-  },
-  error: {
-    color: "red",
-    fontSize: 12,
-  },
-  loginText: {
-    marginTop: 10,
-    textAlign: "center",
-    color: "blue",
-  },
-});
-
-// Dark theme styles
-const darkStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 16,
-    backgroundColor: "#121212", // Dark background
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#fff", // Dark text color
-  },
-  input: {
-    marginBottom: 12,
-    backgroundColor: "#333", // Dark input background
-    color: "#fff", // Dark input text color
-  },
-  button: {
-    marginTop: 16,
-  },
-  error: {
-    color: "red",
-    fontSize: 12,
-  },
-  loginText: {
-    marginTop: 10,
-    textAlign: "center",
-    color: "#1e90ff", // Blue text for the login link
-  },
-});

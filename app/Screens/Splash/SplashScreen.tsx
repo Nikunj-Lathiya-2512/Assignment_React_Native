@@ -25,7 +25,6 @@ const SplashScreen: React.FC = () => {
           navigation.navigate("LoginScreen"); // Navigate to login screen after 3 seconds
         }
       } catch (error) {
-        console.error("Error retrieving token:", error);
       } finally {
       }
     };

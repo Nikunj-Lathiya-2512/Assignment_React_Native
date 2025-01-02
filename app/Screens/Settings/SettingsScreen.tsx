@@ -1,12 +1,12 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   View,
   Text,
   Button,
   Switch,
-  StyleSheet,
   TouchableOpacity,
   Alert,
+  I18nManager,
 } from "react-native";
 import { ThemeContext } from "../../Context/ThemeContext";
 import { LanguageContext } from "../../Context/LanguageConetext";
@@ -14,147 +14,106 @@ import { useNavigation } from "@react-navigation/native";
 import { auth } from "@/app/Services/config";
 import * as SecureStore from "expo-secure-store";
 import CustomHeader from "@/app/CustomViews/CustomHeader";
+import { translations } from "../../locales/language";
+import * as Updates from "expo-updates";
+
+import lightStyles from "../../CommonStyles/lightStyles";
+import darkStyles from "../../CommonStyles/darkStyles";
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme, setTheme } = useContext(ThemeContext) || {};
   const { language, setLanguage } = useContext(LanguageContext) || {};
+  const t = translations[language];
 
-  // Change theme
+  const isDarkTheme = theme === "dark";
+  const styles = isDarkTheme ? darkStyles : lightStyles;
+
   const handleThemeChange = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
   };
+  const handleLanguageChange = async () => {
 
-  // Change language between English and Yiddish
-  const handleLanguageChange = () => {
     const newLanguage = language === "en" ? "yi" : "en";
-    setLanguage(newLanguage);
+              setLanguage(newLanguage)
+               await SecureStore.setItemAsync("language", newLanguage);
+
+      // Alert.alert(
+      //   t.appRestart,
+      //   t.restartMessage,
+      //   [
+      //     {
+      //       text: t.restartNow,
+      //       onPress: async () => {
+      //         const newLanguage = language === "en" ? "yi" : "en";
+      //         setLanguage(newLanguage)
+      //          await SecureStore.setItemAsync("language", newLanguage);
+      //         await Updates.reloadAsync(); // Reload the app to apply RTL changes
+      //       },
+      //     },
+      //     {
+      //       text: t.cancel,
+      //       style: "cancel",
+      //     },
+      //   ],
+      //   { cancelable: false }
+      // );
   };
 
-  // Confirm logout
   const confirmLogout = () => {
-    Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
+    Alert.alert(t.confirmLogout, t.logoutMessage, [
       {
-        text: "Cancel",
-        onPress: () => console.log("Logout cancelled"),
+        text: t.cancel,
         style: "cancel",
       },
       {
-        text: "OK",
+        text: t.ok,
         onPress: handleLogout,
       },
     ]);
   };
 
-  // Handle logout
   const handleLogout = async () => {
     try {
       await SecureStore.deleteItemAsync("userToken");
       await auth.signOut();
       navigation.navigate("LoginScreen");
     } catch (error: any) {
-      console.error("Logout Error:", error.message);
     }
   };
 
-  // Determine if the theme is dark
-  const isDarkTheme = theme === "dark";
-
-  const themedStyles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "flex-start",
-      alignItems: "center",
-      padding: 0,
-      backgroundColor: isDarkTheme ? "#121212" : "#F5F5F5",
-    },
-    title: {
-      fontSize: 30,
-      fontWeight: "bold",
-      marginBottom: 30,
-      color: isDarkTheme ? "#FFFFFF" : "#000000",
-    },
-    card: {
-      marginTop: 20,
-      width: "95%",
-      backgroundColor: isDarkTheme ? "#1E1E1E" : "#FFFFFF",
-      padding: 20,
-      borderRadius: 10,
-      marginBottom: 20,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 5,
-    },
-    cardTitle: {
-      fontSize: 20,
-      fontWeight: "600",
-      marginBottom: 10,
-      color: isDarkTheme ? "#FFFFFF" : "#000000",
-    },
-    cardContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    cardText: {
-      fontSize: 16,
-      color: isDarkTheme ? "#B0B0B0" : "#000000",
-    },
-    logoutText: {
-      color: "red",
-      fontWeight: "bold",
-    },
-  });
-
   return (
-    <View style={themedStyles.container}>
+    <View style={styles.container}>
       <CustomHeader
-        title={language === "en" ? "Settings" : "סעטטינגס"} // Yiddish translation
+        title={t.settings}
         showBackButton={true}
         showSettingIcon={false}
       />
 
-      {/* Theme Setting Card */}
-      <View style={themedStyles.card}>
-        <Text style={themedStyles.cardTitle}>
-          {language === "en" ? "Theme" : "טעמע"} {/* Yiddish translation */}
-        </Text>
-        <View style={themedStyles.cardContent}>
-          <Text style={themedStyles.cardText}>
-            {language === "en" ? "Select your theme:" : "קלייַבן דיין טעמע:"}
-          </Text>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{t.theme}</Text>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardText}>{t.selectTheme}</Text>
           <Switch value={isDarkTheme} onValueChange={handleThemeChange} />
         </View>
       </View>
 
-      {/* Language Setting Card */}
-      <View style={themedStyles.card}>
-        <Text style={themedStyles.cardTitle}>
-          {language === "en" ? "Language" : "שפּראַך"}
-        </Text>
-        <View style={themedStyles.cardContent}>
-          <Text style={themedStyles.cardText}>
-            {language === "en"
-              ? "Select your language:"
-              : "קלייַבן דיין שפּראַך:"}
-          </Text>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{t.language}</Text>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardText}>{t.selectLanguage}</Text>
           <Button
-            title={language === "en" ? "Change to Yiddish" : "טוישן צו ענגליש"}
+            title={language === "en" ? t.changeToYiddish : t.changeToEnglish}
             onPress={handleLanguageChange}
             color={isDarkTheme ? "#1E90FF" : "#007BFF"}
           />
         </View>
       </View>
 
-      {/* Logout Card */}
-      <View style={themedStyles.card}>
+      <View style={styles.card}>
         <TouchableOpacity onPress={confirmLogout}>
-          <Text style={[themedStyles.cardText, themedStyles.logoutText]}>
-            {language === "en" ? "Logout" : "לאג אויס"} {/* Yiddish */}
-          </Text>
+          <Text style={[styles.cardText, styles.logoutText]}>{t.logout}</Text>
         </TouchableOpacity>
       </View>
     </View>

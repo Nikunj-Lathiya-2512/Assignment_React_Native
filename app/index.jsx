@@ -10,11 +10,9 @@ import ConversationHistoryScreen from './Screens/ConversasionHistory/Conversatio
 import SettingsScreen from './Screens/Settings/SettingsScreen'
 import { ThemeContext, ThemeProvider } from "./Context/ThemeContext";
 import { LanguageProvider } from "./Context/LanguageConetext";
-
 import { I18nextProvider } from "react-i18next";
-import i18next from "i18next";
 import { UserProvider } from "./Context/UserContext";
-
+import i18n from "././locales/i18n";
 import NotificationHandler from '././Handler/NotificationHandler'
 
 
@@ -23,7 +21,7 @@ const Stack = createStackNavigator();
 function App() {
   return (
     
-    // <I18nextProvider i18n={i18next}>
+  <I18nextProvider i18n={i18n}>
     <LanguageProvider>
     <UserProvider>
     <ThemeProvider>
@@ -69,7 +67,8 @@ function App() {
     </ThemeProvider>
     </UserProvider>
     </LanguageProvider>
-    // </I18nextProvider>
+   </I18nextProvider>
+
   );
 }
 

@@ -48,6 +48,7 @@ const NotificationHandler = () => {
     // Listener for user tapping the notification
     const responseListener = Notifications.addNotificationResponseReceivedListener(
       (response) => {
+        
         console.log("User tapped on notification:", response);
         // You can navigate to a different screen here if needed
       }
