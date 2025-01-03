@@ -93,11 +93,14 @@ const RegisterScreen = () => {
         rules={{ required: t.nameRequired }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label={t.name}
+          placeholder={t.name}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
-            style={styles.input}
+            style={[
+              styles.input,
+              { textAlign: language === "en" ? "left" : "right" },
+            ]}
             error={!!errors.name}
           />
         )}
@@ -116,11 +119,14 @@ const RegisterScreen = () => {
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label={t.email}
+            placeholder={t.email}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
-            style={styles.input}
+            style={[
+              styles.input,
+              { textAlign: language === "en" ? "left" : "right" },
+            ]}
             error={!!errors.email}
             keyboardType="email-address"
           />
@@ -140,11 +146,14 @@ const RegisterScreen = () => {
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label={t.password}
+            placeholder={t.password}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
-            style={styles.input}
+            style={[
+              styles.input,
+              { textAlign: language === "en" ? "left" : "right" },
+            ]}
             secureTextEntry
             error={!!errors.password}
           />

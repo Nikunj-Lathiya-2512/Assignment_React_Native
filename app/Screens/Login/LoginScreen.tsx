@@ -43,6 +43,7 @@ const LoginScreen = () => {
   const styles = theme === "light" ? lightStyles : darkStyles;
 
   const onSubmit = async (data: FormData) => {
+
     setLoading(true);
     const { email, password } = data;
 
@@ -79,17 +80,29 @@ const LoginScreen = () => {
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label={t.email}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
-            style={styles.input}
+            placeholder={t.email}
+            style={[
+              styles.input,
+              { textAlign: language === "en" ? "left" : "right" },
+            ]}
             error={!!errors.email}
             keyboardType="email-address"
           />
         )}
       />
-      {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
+      {errors.email && (
+        <Text
+          style={[
+            styles.error,
+            { textAlign: language === "en" ? "left" : "right" },
+          ]}
+        >
+          {errors.email.message}
+        </Text>
+      )}
       <Controller
         control={control}
         name="password"
@@ -102,16 +115,22 @@ const LoginScreen = () => {
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            label={t.password}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                textAlign: language === "en" ? "left" : "right",
+              },
+            ]}
             secureTextEntry
+            placeholder={t.password}
             error={!!errors.password}
           />
         )}
       />
+
       {errors.password && (
         <Text style={styles.error}>{errors.password.message}</Text>
       )}

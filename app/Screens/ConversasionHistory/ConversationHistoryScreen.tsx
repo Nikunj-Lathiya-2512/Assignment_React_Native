@@ -29,7 +29,7 @@ const ConversationHistoryScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext) || {};
   const isDarkTheme = theme === "dark";
   
-  const { language, setLanguage } = useContext(LanguageContext) || {};
+  const { language } = useContext(LanguageContext) || {};
   const t = translations[language]; // Get translations for the current language
   
   const route = useRoute();
@@ -371,7 +371,12 @@ const ConversationHistoryScreen: React.FC = () => {
         keyExtractor={(item) => item.id}
         inverted // To show the most recent message at the bottom
       />
-      <View style={styles.inputContainer}>
+      <View
+        style={[
+          styles.inputContainer,
+          { flexDirection: language === "en" ? "row" : "row-reverse" },
+        ]}
+      >
         <TextInput
           style={[
             styles.input,
@@ -389,8 +394,17 @@ const ConversationHistoryScreen: React.FC = () => {
           value={message}
           onChangeText={(text) => setMessage(text)}
         />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Text style={styles.sendButtonText}>
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+          ]}
+          onPress={sendMessage}
+        >
+          <Text
+            style={[
+              styles.sendButtonText,
+            ]}
+          >
             {editingMessageId ? t.update : t.send}
           </Text>
         </TouchableOpacity>

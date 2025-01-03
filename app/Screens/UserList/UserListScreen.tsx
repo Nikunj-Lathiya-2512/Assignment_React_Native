@@ -31,6 +31,7 @@ const UserListScreen: React.FC = () => {
   const styles = theme === "dark" ? darkStyles : lightStyles; // Apply dynamic styles
 
   useEffect(() => {
+    
     const fetchUsers = async () => {
       setLoading(true);
       try {
@@ -70,10 +71,27 @@ const UserListScreen: React.FC = () => {
         })
       }
     >
-      <Card style={styles.listCard}>
+      <Card
+        style={
+          styles.listCard}
+      >
         <Card.Content>
-          <Text style={styles.listCardTitle}>{item.name}</Text>
-          <Text style={styles.cardSubtitle}>{item.email}</Text>
+          <Text
+            style={[
+              styles.listCardTitle,
+              { textAlign: language === "en" ? "left" : "right" },
+            ]}
+          >
+            {item.name}
+          </Text>
+          <Text
+            style={[
+              styles.cardSubtitle,
+              { textAlign: language === "en" ? "left" : "right" },
+            ]}
+          >
+            {item.email}
+          </Text>
         </Card.Content>
       </Card>
     </TouchableOpacity>

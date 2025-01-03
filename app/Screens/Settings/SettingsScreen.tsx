@@ -33,33 +33,17 @@ const SettingsScreen: React.FC = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
   };
+  
+
+useEffect(() => {
+  }, []); 
+    
   const handleLanguageChange = async () => {
 
     const newLanguage = language === "en" ? "yi" : "en";
               setLanguage(newLanguage)
                await SecureStore.setItemAsync("language", newLanguage);
-
-      // Alert.alert(
-      //   t.appRestart,
-      //   t.restartMessage,
-      //   [
-      //     {
-      //       text: t.restartNow,
-      //       onPress: async () => {
-      //         const newLanguage = language === "en" ? "yi" : "en";
-      //         setLanguage(newLanguage)
-      //          await SecureStore.setItemAsync("language", newLanguage);
-      //         await Updates.reloadAsync(); // Reload the app to apply RTL changes
-      //       },
-      //     },
-      //     {
-      //       text: t.cancel,
-      //       style: "cancel",
-      //     },
-      //   ],
-      //   { cancelable: false }
-      // );
-  };
+        };
 
   const confirmLogout = () => {
     Alert.alert(t.confirmLogout, t.logoutMessage, [
@@ -92,16 +76,42 @@ const SettingsScreen: React.FC = () => {
       />
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t.theme}</Text>
-        <View style={styles.cardContent}>
+        <Text
+          style={[
+            styles.cardTitle,
+            { textAlign: language === "en" ? "left" : "right" },
+          ]}
+        >
+          {t.theme}
+        </Text>
+        <View
+          style={[
+            styles.cardContent,
+            { flexDirection: language === "en" ? "row" : "row-reverse" },
+            ,
+          ]}
+        >
           <Text style={styles.cardText}>{t.selectTheme}</Text>
           <Switch value={isDarkTheme} onValueChange={handleThemeChange} />
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t.language}</Text>
-        <View style={styles.cardContent}>
+      <View style={[styles.card]}>
+        <Text
+          style={[
+            styles.cardTitle,
+            { textAlign: language === "en" ? "left" : "right" },
+          ]}
+        >
+          {t.language}
+        </Text>
+        <View
+          style={[
+            styles.cardContent,
+            { flexDirection: language === "en" ? "row" : "row-reverse" },
+            ,
+          ]}
+        >
           <Text style={styles.cardText}>{t.selectLanguage}</Text>
           <Button
             title={language === "en" ? t.changeToYiddish : t.changeToEnglish}
@@ -111,7 +121,12 @@ const SettingsScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.card}>
+      <View
+        style={[
+          styles.card,
+          { flexDirection: language === "en" ? "row" : "row-reverse" },
+        ]}
+      >
         <TouchableOpacity onPress={confirmLogout}>
           <Text style={[styles.cardText, styles.logoutText]}>{t.logout}</Text>
         </TouchableOpacity>
