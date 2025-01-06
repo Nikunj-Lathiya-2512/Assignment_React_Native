@@ -70,9 +70,9 @@ const RegisterScreen = () => {
         createdAt: new Date().toISOString(),
       });
 
-      navigation.navigate("LoginScreen");
+      navigation.navigate("LoginScreen"); // Navigate to login screen after registration
     } catch (error: any) {
-      Alert.alert("", t.errorMessage || error.message);
+      Alert.alert("", t.errorMessage || error.message); // Show error message if registration fails
     } finally {
       setLoading(false);
     }
@@ -84,16 +84,14 @@ const RegisterScreen = () => {
   return (
     <View style={styles.loginContainer}>
       <Text style={styles.title}>{t.register}</Text>
-
       {loading && <Loader />}
-
       <Controller
         control={control}
         name="name"
-        rules={{ required: t.nameRequired }}
+        rules={{ required: t.nameRequired }} // Validation for the name field
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-          placeholder={t.name}
+            placeholder={t.name}
             value={value}
             onBlur={onBlur}
             onChangeText={onChange}
@@ -106,12 +104,11 @@ const RegisterScreen = () => {
         )}
       />
       {errors.name && <Text style={styles.error}>{errors.name.message}</Text>}
-
       <Controller
         control={control}
         name="email"
         rules={{
-          required: t.emailRequired,
+          required: t.emailRequired, // Validation for the email field
           pattern: {
             value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
             message: t.invalidEmailFormat,
@@ -133,12 +130,11 @@ const RegisterScreen = () => {
         )}
       />
       {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
-
       <Controller
         control={control}
         name="password"
         rules={{
-          required: t.passwordRequired,
+          required: t.passwordRequired, 
           minLength: {
             value: 6,
             message: t.passwordMinLength,
@@ -160,11 +156,9 @@ const RegisterScreen = () => {
         )}
       />
       {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
+        <Text style={styles.error}>{errors.password.message}</Text> 
       )}
-
       <Button title={t.register} onPress={handleSubmit(onSubmit)} />
-
       <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
         <Text style={styles.loginText}>{t.alreadyHaveAccount}</Text>
       </TouchableOpacity>

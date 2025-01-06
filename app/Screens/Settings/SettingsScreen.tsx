@@ -19,6 +19,8 @@ import * as Updates from "expo-updates";
 
 import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
+import { useDispatch } from "react-redux";
+import { logout } from "@/app/Redux/slices/authSlice";
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -26,24 +28,25 @@ const SettingsScreen: React.FC = () => {
   const { language, setLanguage } = useContext(LanguageContext) || {};
   const t = translations[language];
 
-  const isDarkTheme = theme === "dark";
-  const styles = isDarkTheme ? darkStyles : lightStyles;
+  const isDarkTheme = theme === "dark"; // Check if the current theme is dark
+  const styles = isDarkTheme ? darkStyles : lightStyles; // Dynamically switch styles based on theme
+  const dispatch = useDispatch();
 
-  const handleThemeChange = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
+  const handleThemeChange = async () => {
+    const newTheme = theme === "light" ? "dark" : "light"; // Toggle between light and dark themes
     setTheme(newTheme);
+    await SecureStore.setItemAsync("theme", newTheme); // Store theme preference in SecureStore
   };
-  
 
-useEffect(() => {
-  }, []); 
-    
+  useEffect(() => {
+    // Empty useEffect hook for future potential side effects or cleanup
+  }, []);
+
   const handleLanguageChange = async () => {
-
-    const newLanguage = language === "en" ? "yi" : "en";
-              setLanguage(newLanguage)
-               await SecureStore.setItemAsync("language", newLanguage);
-        };
+    const newLanguage = language === "en" ? "yi" : "en"; // Toggle between English and Yiddish
+    setLanguage(newLanguage);
+    await SecureStore.setItemAsync("language", newLanguage); // Store language preference in SecureStore
+  };
 
   const confirmLogout = () => {
     Alert.alert(t.confirmLogout, t.logoutMessage, [
@@ -53,17 +56,21 @@ useEffect(() => {
       },
       {
         text: t.ok,
-        onPress: handleLogout,
+        onPress: handleLogout, // Logout action when OK is pressed
       },
     ]);
   };
 
   const handleLogout = async () => {
     try {
+      // Remove token from SecureStorage and dispatch logout action
       await SecureStore.deleteItemAsync("userToken");
-      await auth.signOut();
+      dispatch(logout());
+
+      // Navigate to LoginScreen after successful logout
       navigation.navigate("LoginScreen");
-    } catch (error: any) {
+    } catch (error) {
+      console.error("Error during logout:", error); // Log any errors during logout
     }
   };
 
@@ -88,7 +95,6 @@ useEffect(() => {
           style={[
             styles.cardContent,
             { flexDirection: language === "en" ? "row" : "row-reverse" },
-            ,
           ]}
         >
           <Text style={styles.cardText}>{t.selectTheme}</Text>
@@ -109,14 +115,13 @@ useEffect(() => {
           style={[
             styles.cardContent,
             { flexDirection: language === "en" ? "row" : "row-reverse" },
-            ,
           ]}
         >
           <Text style={styles.cardText}>{t.selectLanguage}</Text>
           <Button
             title={language === "en" ? t.changeToYiddish : t.changeToEnglish}
-            onPress={handleLanguageChange}
-            color={isDarkTheme ? "#1E90FF" : "#007BFF"}
+            onPress={handleLanguageChange} // Trigger language change when button is pressed
+            color={isDarkTheme ? "#1E90FF" : "#007BFF"} // Use different color for button based on theme
           />
         </View>
       </View>

@@ -3,24 +3,19 @@ import { View, Text, TouchableOpacity, Button, Alert } from "react-native";
 import { TextInput } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
-import { ThemeContext } from "@/app/Context/ThemeContext";
-
-// Firebase imports
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { firebaseConfig } from "../../Services/config";
-import { initializeApp } from "firebase/app";
+import { useDispatch } from "react-redux";
+import { login } from "../../Redux/slices/authSlice"; // Redux action
 import * as SecureStore from "expo-secure-store";
 import Loader from "../../Constant/Loader";
+import { ThemeContext } from "@/app/Context/ThemeContext";
 import { LanguageContext } from "../../Context/LanguageConetext";
 import { translations } from "../../locales/language";
 
 // Import styles
 import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/app/Services/config";
 
 type FormData = {
   email: string;
@@ -29,7 +24,7 @@ type FormData = {
 
 const LoginScreen = () => {
   const { language } = useContext(LanguageContext) || {};
-  const t = translations[language];
+  const t = translations[language]; // Fetch the translations based on current language
   const { theme } = useContext(ThemeContext); // Get current theme from context
   const {
     control,
@@ -38,16 +33,18 @@ const LoginScreen = () => {
   } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const dispatch = useDispatch(); // Initialize Redux dispatcher
 
   // Dynamically set styles based on theme
   const styles = theme === "light" ? lightStyles : darkStyles;
 
+  // Handle form submission for login
   const onSubmit = async (data: FormData) => {
-
     setLoading(true);
     const { email, password } = data;
 
     try {
+      // Sign in with Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -55,11 +52,14 @@ const LoginScreen = () => {
       );
       setLoading(false);
       const token = await userCredential.user.getIdToken();
-      await SecureStore.setItemAsync("userToken", token);
 
-      navigation.navigate("UserListScreen");
+      // Store token in SecureStore and Redux state
+      await SecureStore.setItemAsync("userToken", token);
+      dispatch(login({ email, token })); // Dispatch Redux action to store user state
+
+      navigation.navigate("UserListScreen"); // Navigate to the next screen after successful login
     } catch (error: any) {
-      Alert.alert("", t.errorMessage || error.message);
+      Alert.alert("", t.errorMessage || error.message); // Show error alert if login fails
       setLoading(false);
     }
   };
@@ -67,15 +67,15 @@ const LoginScreen = () => {
   return (
     <View style={styles.loginContainer}>
       <Text style={styles.title}>{t.login}</Text>
-      {loading && <Loader />}
+      {loading && <Loader />} 
       <Controller
         control={control}
         name="email"
         rules={{
-          required: t.emailRequired,
+          required: t.emailRequired, 
           pattern: {
             value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-            message: t.invalidEmailFormat,
+            message: t.invalidEmailFormat, 
           },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
@@ -88,7 +88,7 @@ const LoginScreen = () => {
               styles.input,
               { textAlign: language === "en" ? "left" : "right" },
             ]}
-            error={!!errors.email}
+            error={!!errors.email} 
             keyboardType="email-address"
           />
         )}
@@ -126,22 +126,21 @@ const LoginScreen = () => {
             ]}
             secureTextEntry
             placeholder={t.password}
-            error={!!errors.password}
+            error={!!errors.password} 
           />
         )}
       />
-
       {errors.password && (
         <Text style={styles.error}>{errors.password.message}</Text>
       )}
       <Button
         title={t.login}
         onPress={handleSubmit(onSubmit)}
-        disabled={loading}
+        disabled={loading} 
       />
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate("RegisterScreen");
+          navigation.navigate("RegisterScreen"); 
         }}
       >
         <Text style={styles.registerText}>{t.dontHaveAccount}</Text>

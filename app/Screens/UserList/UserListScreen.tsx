@@ -10,7 +10,6 @@ import { ThemeContext } from "../../Context/ThemeContext";
 import { translations } from "../../locales/language";
 import { LanguageContext } from "@/app/Context/LanguageConetext";
 
-// Import styles
 import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
 
@@ -28,10 +27,10 @@ const UserListScreen: React.FC = () => {
   const { language } = useContext(LanguageContext) || {};
   const t = translations[language];
 
-  const styles = theme === "dark" ? darkStyles : lightStyles; // Apply dynamic styles
+  const styles = theme === "dark" ? darkStyles : lightStyles; // Apply dynamic styles based on the current theme
 
   useEffect(() => {
-    
+    // Fetch users from Firestore when component mounts
     const fetchUsers = async () => {
       setLoading(true);
       try {
@@ -43,22 +42,22 @@ const UserListScreen: React.FC = () => {
           const userList = userSnapshot.docs
             .map((doc) => ({
               id: doc.id,
-              name: doc.data().name || "Name",
-              email: doc.data().email || "Email",
+              name: doc.data().name || "Name", // Fallback in case name is not provided
+              email: doc.data().email || "Email", // Fallback in case email is not provided
             }))
-            .filter((user) => user.email !== loggedInUserEmail);
+            .filter((user) => user.email !== loggedInUserEmail); // Exclude the current logged-in user from the list
           setUsers(userList);
         } else {
-          setUsers([]);
+          setUsers([]); // Set an empty list if no users are found
         }
       } catch (error) {
-        setUsers([]);
+        setUsers([]); // In case of error, set an empty list of users
       } finally {
-        setLoading(false);
+        setLoading(false); // Stop loading indicator after fetching users
       }
     };
 
-    fetchUsers();
+    fetchUsers(); // Fetch the users when the component is mounted
   }, []);
 
   const renderItem = ({ item }: { item: User }) => (
@@ -67,14 +66,11 @@ const UserListScreen: React.FC = () => {
       onPress={() =>
         navigation.navigate("ConversationHistoryScreen", {
           userName: item.name,
-          userEmail: item.email,
+          userEmail: item.email, // Pass user details to the next screen
         })
       }
     >
-      <Card
-        style={
-          styles.listCard}
-      >
+      <Card style={styles.listCard}>
         <Card.Content>
           <Text
             style={[
@@ -108,7 +104,7 @@ const UserListScreen: React.FC = () => {
       />
       {loading && <Loader />}
       {!loading && !users.length && (
-        <Text style={styles.emptyMessage}>{t.noUsersFound}</Text>
+        <Text style={styles.emptyMessage}>{t.noUsersFound}</Text> 
       )}
       <FlatList
         data={users || []}
