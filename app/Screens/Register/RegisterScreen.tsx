@@ -67,6 +67,7 @@ const RegisterScreen = () => {
       await setDoc(userDocRef, {
         name,
         email,
+        status: "offline", // Set a default value, e.g., "offline"
         createdAt: new Date().toISOString(),
       });
 
@@ -134,7 +135,7 @@ const RegisterScreen = () => {
         control={control}
         name="password"
         rules={{
-          required: t.passwordRequired, 
+          required: t.passwordRequired,
           minLength: {
             value: 6,
             message: t.passwordMinLength,
@@ -156,7 +157,7 @@ const RegisterScreen = () => {
         )}
       />
       {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text> 
+        <Text style={styles.error}>{errors.password.message}</Text>
       )}
       <Button title={t.register} onPress={handleSubmit(onSubmit)} />
       <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>

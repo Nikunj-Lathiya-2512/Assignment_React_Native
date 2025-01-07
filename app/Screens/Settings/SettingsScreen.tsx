@@ -11,7 +11,7 @@ import {
 import { ThemeContext } from "../../Context/ThemeContext";
 import { LanguageContext } from "../../Context/LanguageConetext";
 import { useNavigation } from "@react-navigation/native";
-import { auth } from "@/app/Services/config";
+import { auth, firestore } from "@/app/Services/config";
 import * as SecureStore from "expo-secure-store";
 import CustomHeader from "@/app/CustomViews/CustomHeader";
 import { translations } from "../../locales/language";
@@ -21,6 +21,7 @@ import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
 import { useDispatch } from "react-redux";
 import { logout } from "@/app/Redux/slices/authSlice";
+import { doc, updateDoc } from "firebase/firestore";
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -41,6 +42,21 @@ const SettingsScreen: React.FC = () => {
   useEffect(() => {
     // Empty useEffect hook for future potential side effects or cleanup
   }, []);
+
+  useEffect(() => {}, []);
+
+  const updateUserStatus = async (status: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(firestore, "users", currentUser.uid);
+        await updateDoc(userDocRef, { status }); // Update the status field in Firestore
+      }
+    } catch (error) {
+      console.error("Error updating user status:", error);
+    }
+  };
+  // Set the current user's status to "online" when the component mounts
 
   const handleLanguageChange = async () => {
     const newLanguage = language === "en" ? "yi" : "en"; // Toggle between English and Yiddish
@@ -63,6 +79,8 @@ const SettingsScreen: React.FC = () => {
 
   const handleLogout = async () => {
     try {
+      updateUserStatus("offline");
+
       // Remove token from SecureStorage and dispatch logout action
       await SecureStore.deleteItemAsync("userToken");
       dispatch(logout());

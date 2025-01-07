@@ -30,5 +30,7 @@
   "languageChange": "Language Change",
   "languageChangeMessage": "The app needs to restart to apply the new language setting.",
   "ok": "OK",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "online": "Online",
+  "offline": "offline"
 }

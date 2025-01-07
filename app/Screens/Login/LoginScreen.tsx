@@ -67,15 +67,15 @@ const LoginScreen = () => {
   return (
     <View style={styles.loginContainer}>
       <Text style={styles.title}>{t.login}</Text>
-      {loading && <Loader />} 
+      {loading && <Loader />}
       <Controller
         control={control}
         name="email"
         rules={{
-          required: t.emailRequired, 
+          required: t.emailRequired,
           pattern: {
             value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-            message: t.invalidEmailFormat, 
+            message: t.invalidEmailFormat,
           },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
@@ -88,7 +88,7 @@ const LoginScreen = () => {
               styles.input,
               { textAlign: language === "en" ? "left" : "right" },
             ]}
-            error={!!errors.email} 
+            error={!!errors.email}
             keyboardType="email-address"
           />
         )}
@@ -126,7 +126,7 @@ const LoginScreen = () => {
             ]}
             secureTextEntry
             placeholder={t.password}
-            error={!!errors.password} 
+            error={!!errors.password}
           />
         )}
       />
@@ -136,11 +136,11 @@ const LoginScreen = () => {
       <Button
         title={t.login}
         onPress={handleSubmit(onSubmit)}
-        disabled={loading} 
+        disabled={loading}
       />
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate("RegisterScreen"); 
+          navigation.navigate("RegisterScreen");
         }}
       >
         <Text style={styles.registerText}>{t.dontHaveAccount}</Text>

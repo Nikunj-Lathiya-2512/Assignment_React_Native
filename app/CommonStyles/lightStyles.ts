@@ -132,6 +132,11 @@ const lightStyles = StyleSheet.create({
     color: "gray", // Light subtitle color
   },
 
+  // Style for user status
+  statusText: {
+    fontSize: 12,
+  },
+
   // Empty message style (shown when the list is empty)
   emptyMessage: {
     textAlign: "center",

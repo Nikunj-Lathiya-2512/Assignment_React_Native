@@ -56,6 +56,7 @@ const ConversationHistoryScreen: React.FC = () => {
   const [lastLoadedKey, setLastLoadedKey] = useState<string | null>(null); // Track the last loaded message
   const PAGE_SIZE = 20; // Number of messages to load per page
   const messagesRef = ref(database, "messages");
+
   // Fetch messages and filter by sender and receiver and permission for notification
   useEffect(() => {
     const unsubscribe = onValue(messagesRef, (snapshot) => {
@@ -282,6 +283,44 @@ const ConversationHistoryScreen: React.FC = () => {
   };
 
   // Send a new message or update an existing one
+  // const sendMessage = async () => {
+  //   if (message.trim()) {
+  //     let messageData = {
+  //       sender: currentUser,
+  //       receiver: receiverName,
+  //       content: message,
+  //       timestamp: new Date().toLocaleTimeString(),
+  //       edited: false,
+  //     };
+
+  //     if (editingMessageId) {
+  //       // Update the existing message
+  //       const messageRef = ref(database, `messages/${editingMessageId}`);
+  //       await update(messageRef, {
+  //         content: message,
+  //         timestamp: new Date().toLocaleTimeString(),
+  //         edited: true, // Mark the message as edited
+  //       });
+
+  //       setEditingMessageId(null); // Reset editing state
+  //     } else {
+  //       // Create a new message
+  //       const newMessage = {
+  //         sender: currentUser, // Dynamic sender
+  //         receiver: receiverName, // Receiver selected from the user list
+  //         content: message,
+  //         timestamp: new Date().toLocaleTimeString(),
+  //         edited: false, // New messages are not edited
+  //       };
+
+  //       await push(messagesRef, newMessage); // Push message to Firebase
+  //     }
+
+  //     setMessage(""); // Clear input field
+  //     sendPushNotification(receiverName, messageData); // Send notification
+  //   }
+  // };
+
   const sendMessage = async () => {
     if (message.trim()) {
       let messageData = {
@@ -292,6 +331,10 @@ const ConversationHistoryScreen: React.FC = () => {
         edited: false,
       };
 
+      // After sending, remove typing status
+      setTypingStatus("");
+
+      // Proceed with sending the message as per existing code
       if (editingMessageId) {
         // Update the existing message
         const messageRef = ref(database, `messages/${editingMessageId}`);
@@ -433,6 +476,64 @@ const ConversationHistoryScreen: React.FC = () => {
     );
   };
 
+  // Listen to typing status for when the receiver is typing.
+  useEffect(() => {
+    const typingStatusRef = ref(
+      database,
+      `typingStatus/${receiverName}/${currentUser}`
+    );
+    const unsubscribeTypingStatus = onValue(typingStatusRef, (snapshot) => {
+      const status = snapshot.val();
+      if (status && status.status === "typing") {
+        setTypingStatus("Typing..."); // Display "Typing..." if the receiver is typing
+      } else {
+        setTypingStatus(""); // Clear the typing message when the receiver stops typing
+      }
+    });
+
+    return () => unsubscribeTypingStatus(); // Clean up the listener when the component is unmounted
+  }, [currentUser, receiverName]);
+
+  // Add a new useState hook to manage typing status from the receiver's perspective.
+  const [typingStatus, setTypingStatus] = useState<string>("");
+
+  let typingTimer: any; // Timer identifier
+  const doneTypingInterval = 2000; // Time in ms (1 second)
+
+  const handleTyping = () => {
+    // Clear the previous timer
+    clearTimeout(typingTimer);
+
+    // Set a new timer
+    typingTimer = setTimeout(() => {
+      // Update the typing status in Firebase for the receiver
+      setTypingStatusInFirebase(""); // Clear typing status after inactivity
+    }, doneTypingInterval);
+
+    // Update the typing status in Firebase for the receiver
+    setTypingStatusInFirebase("typing"); // Set typing status when typing
+  };
+
+  // const handleTyping = () => {
+  //   if (message.trim()) {
+  //     // setTypingStatus("typing"); // Set typing status when typing
+  //   } else {
+  //     setTypingStatus(""); // Remove typing status when no message is entered
+  //   }
+
+  //   // Update the typing status in Firebase for the receiver
+  //   setTypingStatusInFirebase(message.trim() ? "typing" : ""); // Send "typing" or clear it based on input
+  // };
+
+  // Create a function to update typing status in Firebase for the receiver.
+  const setTypingStatusInFirebase = async (status: string) => {
+    const typingRef = ref(
+      database,
+      `typingStatus/${currentUser}/${receiverName}`
+    );
+    await update(typingRef, { status }); // Update Firebase with the typing status
+  };
+
   return (
     <View
       style={[
@@ -441,7 +542,7 @@ const ConversationHistoryScreen: React.FC = () => {
       ]}
     >
       <CustomHeader
-        title={receiverName} // Display the receiver's name
+        title={receiverName + " " + typingStatus} // Display the receiver's name
         showBackButton={true}
         showSettingIcon={false}
       />
@@ -484,7 +585,10 @@ const ConversationHistoryScreen: React.FC = () => {
           }
           placeholderTextColor={isDarkTheme ? "#AAAAAA" : "#888888"}
           value={message}
-          onChangeText={(text) => setMessage(text)}
+          onChangeText={(text) => {
+            setMessage(text);
+            handleTyping(); // Trigger typing status update
+          }}
         />
         <TouchableOpacity style={[styles.sendButton]} onPress={sendMessage}>
           <Text style={[styles.sendButtonText]}>

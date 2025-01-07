@@ -3,7 +3,7 @@ import { FlatList, Text, View, TouchableOpacity } from "react-native";
 import { Card } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { firestore, auth } from "../../Services/config";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import CustomHeader from "@/app/CustomViews/CustomHeader";
 import Loader from "@/app/Constant/Loader";
 import { ThemeContext } from "../../Context/ThemeContext";
@@ -17,6 +17,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  status: string; // Add a status field to track user online/offline status
 }
 
 const UserListScreen: React.FC = () => {
@@ -30,34 +31,54 @@ const UserListScreen: React.FC = () => {
   const styles = theme === "dark" ? darkStyles : lightStyles; // Apply dynamic styles based on the current theme
 
   useEffect(() => {
-    // Fetch users from Firestore when component mounts
-    const fetchUsers = async () => {
-      setLoading(true);
+    const updateUserStatus = async (status: string) => {
       try {
-        const loggedInUserEmail = auth.currentUser?.email;
-        const usersCollection = collection(firestore, "users");
-        const userSnapshot = await getDocs(usersCollection);
-
-        if (userSnapshot) {
-          const userList = userSnapshot.docs
-            .map((doc) => ({
-              id: doc.id,
-              name: doc.data().name || "Name", // Fallback in case name is not provided
-              email: doc.data().email || "Email", // Fallback in case email is not provided
-            }))
-            .filter((user) => user.email !== loggedInUserEmail); // Exclude the current logged-in user from the list
-          setUsers(userList);
-        } else {
-          setUsers([]); // Set an empty list if no users are found
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const userDocRef = doc(firestore, "users", currentUser.uid);
+          await updateDoc(userDocRef, { status }); // Update the status field in Firestore
         }
       } catch (error) {
-        setUsers([]); // In case of error, set an empty list of users
-      } finally {
-        setLoading(false); // Stop loading indicator after fetching users
+        console.error("Error updating user status:", error);
       }
     };
 
-    fetchUsers(); // Fetch the users when the component is mounted
+    // Set the current user's status to "online" when the component mounts
+    updateUserStatus("online");
+
+    // Cleanup function to set the user's status to "offline" when the component unmounts
+    return () => {
+      // Wait for the status to be set to "offline" before the component unmounts
+      updateUserStatus("offline");
+    };
+  }, []);
+
+  useEffect(() => {
+    // Listen for changes in the "users" collection in real-time
+    const usersCollectionRef = collection(firestore, "users");
+    const unsubscribe = onSnapshot(
+      usersCollectionRef,
+      (snapshot) => {
+        const loggedInUserEmail = auth.currentUser?.email;
+
+        const userList = snapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            name: doc.data().name || "Name", // Fallback in case name is not provided
+            email: doc.data().email || "Email", // Fallback in case email is not provided
+            status: doc.data().status || "offline", // Default to offline if status is not provided
+          }))
+          .filter((user) => user.email !== loggedInUserEmail); // Exclude the logged-in user from the list
+
+        setUsers(userList); // Update the user list in state
+      },
+      (error) => {
+        console.error("Error listening to user status updates:", error);
+      }
+    );
+
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
   }, []);
 
   const renderItem = ({ item }: { item: User }) => (
@@ -88,6 +109,17 @@ const UserListScreen: React.FC = () => {
           >
             {item.email}
           </Text>
+          <Text
+            style={[
+              styles.statusText,
+              {
+                color: item.status === "online" ? "green" : "red",
+                textAlign: language === "en" ? "left" : "right",
+              },
+            ]}
+          >
+            {item.status === "online" ? "Online" : "Offline"}
+          </Text>
         </Card.Content>
       </Card>
     </TouchableOpacity>
@@ -104,7 +136,7 @@ const UserListScreen: React.FC = () => {
       />
       {loading && <Loader />}
       {!loading && !users.length && (
-        <Text style={styles.emptyMessage}>{t.noUsersFound}</Text> 
+        <Text style={styles.emptyMessage}>{t.noUsersFound}</Text>
       )}
       <FlatList
         data={users || []}
