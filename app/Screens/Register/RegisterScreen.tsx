@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import { View, Text, TouchableOpacity, Button, Alert } from "react-native";
-import { TextInput } from "react-native-paper";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
 import { ThemeContext } from "@/app/Context/ThemeContext";
 
@@ -17,9 +16,14 @@ import Loader from "../../Constant/Loader";
 import { LanguageContext } from "../../Context/LanguageConetext";
 import { translations } from "../../locales/language";
 
-// Import styles
 import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
+import CustomTextInput from "@/app/CustomViews/CustomTextInput";
+import {
+  DEFAULT_USER_STATUS,
+  FIREBASE_DATA_NAME,
+  LIGHT_THEME,
+} from "@/app/Constant/Cosntant";
 
 // Initialize Firebase (ensure singleton)
 const app = initializeApp(firebaseConfig);
@@ -63,11 +67,11 @@ const RegisterScreen = () => {
 
       // Save user details in Firestore
       const userId = user.uid;
-      const userDocRef = doc(firestore, "users", userId);
+      const userDocRef = doc(firestore, FIREBASE_DATA_NAME, userId);
       await setDoc(userDocRef, {
         name,
         email,
-        status: "offline", // Set a default value, e.g., "offline"
+        status: DEFAULT_USER_STATUS, // Set a default value, e.g., "offline"
         createdAt: new Date().toISOString(),
       });
 
@@ -80,85 +84,61 @@ const RegisterScreen = () => {
   };
 
   // Dynamically use styles based on the theme
-  const styles = theme === "light" ? lightStyles : darkStyles;
+  const styles = theme === LIGHT_THEME ? lightStyles : darkStyles;
 
   return (
     <View style={styles.loginContainer}>
       <Text style={styles.title}>{t.register}</Text>
       {loading && <Loader />}
-      <Controller
+
+      {/* Name Input */}
+      <CustomTextInput
         control={control}
         name="name"
-        rules={{ required: t.nameRequired }} // Validation for the name field
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            placeholder={t.name}
-            value={value}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            style={[
-              styles.input,
-              { textAlign: language === "en" ? "left" : "right" },
-            ]}
-            error={!!errors.name}
-          />
-        )}
+        placeholder={t.name}
+        rules={{ required: t.nameRequired }} // Validation rules for name
+        errors={errors}
+        styles={styles}
+        language={language === "en" ? "en" : "yi"}
       />
-      {errors.name && <Text style={styles.error}>{errors.name.message}</Text>}
-      <Controller
+
+      {/* Email Input */}
+      <CustomTextInput
         control={control}
         name="email"
+        placeholder={t.email}
         rules={{
-          required: t.emailRequired, // Validation for the email field
+          required: t.emailRequired, // Validation rules for email
           pattern: {
             value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
             message: t.invalidEmailFormat,
           },
         }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            placeholder={t.email}
-            value={value}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            style={[
-              styles.input,
-              { textAlign: language === "en" ? "left" : "right" },
-            ]}
-            error={!!errors.email}
-            keyboardType="email-address"
-          />
-        )}
+        errors={errors}
+        styles={styles}
+        language={language === "en" ? "en" : "yi"}
+        keyboardType="email-address"
       />
-      {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
-      <Controller
+
+      {/* Password Input */}
+      <CustomTextInput
         control={control}
         name="password"
+        placeholder={t.password}
         rules={{
-          required: t.passwordRequired,
+          required: t.passwordRequired, // Validation rules for password
           minLength: {
             value: 6,
             message: t.passwordMinLength,
           },
         }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            placeholder={t.password}
-            value={value}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            style={[
-              styles.input,
-              { textAlign: language === "en" ? "left" : "right" },
-            ]}
-            secureTextEntry
-            error={!!errors.password}
-          />
-        )}
+        errors={errors}
+        styles={styles}
+        language={language === "en" ? "en" : "yi"}
+        secureTextEntry={true}
       />
-      {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
-      )}
+
+      {/* Submit Button */}
       <Button title={t.register} onPress={handleSubmit(onSubmit)} />
       <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
         <Text style={styles.loginText}>{t.alreadyHaveAccount}</Text>

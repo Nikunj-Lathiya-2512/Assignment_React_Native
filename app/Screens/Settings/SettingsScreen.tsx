@@ -22,6 +22,15 @@ import darkStyles from "../../CommonStyles/darkStyles";
 import { useDispatch } from "react-redux";
 import { logout } from "@/app/Redux/slices/authSlice";
 import { doc, updateDoc } from "firebase/firestore";
+import {
+  DARK_THEME,
+  DEFAULT_USER_STATUS,
+  FIREBASE_DATA_NAME,
+  LIGHT_THEME,
+  LOCAL_LANGUAGE_KEY,
+  LOCAL_THEME_KEY,
+  USER_TOKEN,
+} from "@/app/Constant/Cosntant";
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -29,14 +38,14 @@ const SettingsScreen: React.FC = () => {
   const { language, setLanguage } = useContext(LanguageContext) || {};
   const t = translations[language];
 
-  const isDarkTheme = theme === "dark"; // Check if the current theme is dark
+  const isDarkTheme = theme === DARK_THEME; // Check if the current theme is dark
   const styles = isDarkTheme ? darkStyles : lightStyles; // Dynamically switch styles based on theme
   const dispatch = useDispatch();
 
   const handleThemeChange = async () => {
-    const newTheme = theme === "light" ? "dark" : "light"; // Toggle between light and dark themes
+    const newTheme = theme === LIGHT_THEME ? DARK_THEME : LIGHT_THEME; // Toggle between light and dark themes
     setTheme(newTheme);
-    await SecureStore.setItemAsync("theme", newTheme); // Store theme preference in SecureStore
+    await SecureStore.setItemAsync(LOCAL_THEME_KEY, newTheme); // Store theme preference in SecureStore
   };
 
   useEffect(() => {
@@ -49,7 +58,7 @@ const SettingsScreen: React.FC = () => {
     try {
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const userDocRef = doc(firestore, "users", currentUser.uid);
+        const userDocRef = doc(firestore, FIREBASE_DATA_NAME, currentUser.uid);
         await updateDoc(userDocRef, { status }); // Update the status field in Firestore
       }
     } catch (error) {
@@ -61,7 +70,7 @@ const SettingsScreen: React.FC = () => {
   const handleLanguageChange = async () => {
     const newLanguage = language === "en" ? "yi" : "en"; // Toggle between English and Yiddish
     setLanguage(newLanguage);
-    await SecureStore.setItemAsync("language", newLanguage); // Store language preference in SecureStore
+    await SecureStore.setItemAsync(LOCAL_LANGUAGE_KEY, newLanguage); // Store language preference in SecureStore
   };
 
   const confirmLogout = () => {
@@ -79,10 +88,10 @@ const SettingsScreen: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      updateUserStatus("offline");
+      updateUserStatus(DEFAULT_USER_STATUS);
 
       // Remove token from SecureStorage and dispatch logout action
-      await SecureStore.deleteItemAsync("userToken");
+      await SecureStore.deleteItemAsync(USER_TOKEN);
       dispatch(logout());
 
       // Navigate to LoginScreen after successful logout

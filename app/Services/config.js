@@ -1,18 +1,19 @@
-import { initializeApp, firebase } from "firebase/app"; 
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"; 
-import { getFirestore } from "firebase/firestore"; 
-import { getStorage } from "firebase/storage"; 
-import { getDatabase } from "firebase/database"; 
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getDatabase } from "firebase/database";
 
+import { config } from "react-native-dotenv";
 // Firebase configuration object (contains your Firebase project details)
 const firebaseConfig = {
-  apiKey: "AIzaSyAhPqeFqdkCJolOIJ82OD2tPg8In_6IT4s", // Your Firebase API Key
-  authDomain: "assignment-react-native-a908d.firebaseapp.com", // Firebase authentication domain
-  projectId: "assignment-react-native-a908d", // Firebase project ID
-  storageBucket: "assignment-react-native-a908d.appspot.com", // Firebase storage URL for storing files
-  messagingSenderId: "344182219651", // Firebase Cloud Messaging Sender ID
-  appId: "1:344182219651:web:c54c8e039c583abad2ccb6", // Firebase App ID
-  measurementId: "G-N49DXBZGTK", // Firebase Analytics Measurement ID
+  apiKey: config.FIREBASE_API_KEY, // Fetch from .env
+  authDomain: config.FIREBASE_AUTH_DOMAIN, // Fetch from .env
+  projectId: config.FIREBASE_PROJECT_ID, // Fetch from .env
+  storageBucket: config.FIREBASE_STORAGE_BUCKET, // Fetch from .env
+  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID, // Fetch from .env
+  appId: config.FIREBASE_APP_ID, // Fetch from .env
+  measurementId: config.FIREBASE_MEASUREMENT_ID, // Fetch from .env
 };
 
 // Initialize Firebase app with the configuration

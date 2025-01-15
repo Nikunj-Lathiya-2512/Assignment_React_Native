@@ -34,12 +34,14 @@ export const translations = {
     ok: "OK",
     cancel: "Cancel",
     restartNow: "Restart",
-    appRestart:'Restart Application?',
-    restartMessage:'Need to restart  for apply language changes',
+    appRestart: "Restart Application?",
+    restartMessage: "Need to restart  for apply language changes",
 
     // User List Text
     userListTitle: "User List",
     noUsersFound: "No users found.",
+    online: "Online",
+    offline: "Offline",
 
     // Chat History Texts
     messageOptions: "Message Options",
@@ -88,7 +90,8 @@ export const translations = {
     confirmLogout: "באַשטעטיקן לאג אויס",
     logoutMessage: "זענט איר זיכער אַז איר ווילן צו לאג אויס?",
     languageChange: "שפּראַך טוישן",
-    languageChangeMessage:"די אַפּ דאַרף צו ריסטאַרט צו צולייגן די נייע שפּראַך באַשטעטיקונג.",
+    languageChangeMessage:
+      "די אַפּ דאַרף צו ריסטאַרט צו צולייגן די נייע שפּראַך באַשטעטיקונג.",
     ok: "יא",
     cancel: "באָטל מאַכן",
     restartNow: "נײַ אָנהייבן",
@@ -98,6 +101,8 @@ export const translations = {
     // User List screen Texts
     userListTitle: "באַניצער ליסטע",
     noUsersFound: "קיין בניצער געפונען.",
+    online: "אָנליין",
+    offline: "אָףליינע",
 
     // Chat History Texts
     messageOptions: "מעסידזש אָפּציעס",

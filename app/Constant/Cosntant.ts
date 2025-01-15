@@ -1,0 +1,11 @@
+export const FIREBASE_DATA_NAME = "users";
+export const USER_TOKEN = "userToken";
+export const LIGHT_THEME = "light";
+export const DARK_THEME = "dark";
+export const DEFAULT_USER_STATUS = "offline"; // Set a default user status";
+export const ONLINE_USER_STATUS = "online";
+export const FIREBASE_REF = "messages";
+export const TYPING_STATUS = "typingStatus";
+export const FIREBASE_PUSH_TOKEN = "pushToken";
+export const LOCAL_THEME_KEY = "theme";
+export const LOCAL_LANGUAGE_KEY = "language";

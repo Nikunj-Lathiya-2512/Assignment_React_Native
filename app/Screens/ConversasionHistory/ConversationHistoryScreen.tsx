@@ -33,6 +33,12 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { LanguageContext } from "../../Context/LanguageConetext";
 import { translations } from "../../locales/language";
+import {
+  FIREBASE_DATA_NAME,
+  FIREBASE_PUSH_TOKEN,
+  FIREBASE_REF,
+  TYPING_STATUS,
+} from "@/app/Constant/Cosntant";
 
 const ConversationHistoryScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext) || {};
@@ -55,7 +61,7 @@ const ConversationHistoryScreen: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false); // For loading more messages
   const [lastLoadedKey, setLastLoadedKey] = useState<string | null>(null); // Track the last loaded message
   const PAGE_SIZE = 20; // Number of messages to load per page
-  const messagesRef = ref(database, "messages");
+  const messagesRef = ref(database, FIREBASE_REF);
 
   // Fetch messages and filter by sender and receiver and permission for notification
   useEffect(() => {
@@ -220,7 +226,10 @@ const ConversationHistoryScreen: React.FC = () => {
   };
 
   const storeReceiverPushToken = async (token: string) => {
-    const userRef = ref(database, `users/${receiverName}/${push}`);
+    const userRef = ref(
+      database,
+      `${FIREBASE_DATA_NAME}/${receiverName}/${push}`
+    );
     await update(userRef, { pushToken: token }); // Ensure you're storing the token at the correct path
   };
 
@@ -229,7 +238,10 @@ const ConversationHistoryScreen: React.FC = () => {
       return null;
     }
     try {
-      const userRef = ref(database, `users/${receiver}/pushToken`);
+      const userRef = ref(
+        database,
+        `${FIREBASE_DATA_NAME}/${receiver}/${FIREBASE_PUSH_TOKEN}`
+      );
       const snapshot = await get(userRef);
       if (snapshot.exists()) {
         const receiverPushToken = snapshot.val();
@@ -282,45 +294,6 @@ const ConversationHistoryScreen: React.FC = () => {
     } catch (error) {}
   };
 
-  // Send a new message or update an existing one
-  // const sendMessage = async () => {
-  //   if (message.trim()) {
-  //     let messageData = {
-  //       sender: currentUser,
-  //       receiver: receiverName,
-  //       content: message,
-  //       timestamp: new Date().toLocaleTimeString(),
-  //       edited: false,
-  //     };
-
-  //     if (editingMessageId) {
-  //       // Update the existing message
-  //       const messageRef = ref(database, `messages/${editingMessageId}`);
-  //       await update(messageRef, {
-  //         content: message,
-  //         timestamp: new Date().toLocaleTimeString(),
-  //         edited: true, // Mark the message as edited
-  //       });
-
-  //       setEditingMessageId(null); // Reset editing state
-  //     } else {
-  //       // Create a new message
-  //       const newMessage = {
-  //         sender: currentUser, // Dynamic sender
-  //         receiver: receiverName, // Receiver selected from the user list
-  //         content: message,
-  //         timestamp: new Date().toLocaleTimeString(),
-  //         edited: false, // New messages are not edited
-  //       };
-
-  //       await push(messagesRef, newMessage); // Push message to Firebase
-  //     }
-
-  //     setMessage(""); // Clear input field
-  //     sendPushNotification(receiverName, messageData); // Send notification
-  //   }
-  // };
-
   const sendMessage = async () => {
     if (message.trim()) {
       let messageData = {
@@ -337,7 +310,7 @@ const ConversationHistoryScreen: React.FC = () => {
       // Proceed with sending the message as per existing code
       if (editingMessageId) {
         // Update the existing message
-        const messageRef = ref(database, `messages/${editingMessageId}`);
+        const messageRef = ref(database, `${FIREBASE_REF}/${editingMessageId}`);
         await update(messageRef, {
           content: message,
           timestamp: new Date().toLocaleTimeString(),
@@ -380,7 +353,7 @@ const ConversationHistoryScreen: React.FC = () => {
           text: t.delete, // Translated "Delete"
           style: "destructive",
           onPress: async () => {
-            const messageRef = ref(database, `messages/${messageId}`);
+            const messageRef = ref(database, `${FIREBASE_REF}/${messageId}`);
             await remove(messageRef); // Remove message from Firebase
           },
         },
@@ -480,7 +453,7 @@ const ConversationHistoryScreen: React.FC = () => {
   useEffect(() => {
     const typingStatusRef = ref(
       database,
-      `typingStatus/${receiverName}/${currentUser}`
+      `${TYPING_STATUS}/${receiverName}/${currentUser}`
     );
     const unsubscribeTypingStatus = onValue(typingStatusRef, (snapshot) => {
       const status = snapshot.val();
@@ -514,22 +487,11 @@ const ConversationHistoryScreen: React.FC = () => {
     setTypingStatusInFirebase("typing"); // Set typing status when typing
   };
 
-  // const handleTyping = () => {
-  //   if (message.trim()) {
-  //     // setTypingStatus("typing"); // Set typing status when typing
-  //   } else {
-  //     setTypingStatus(""); // Remove typing status when no message is entered
-  //   }
-
-  //   // Update the typing status in Firebase for the receiver
-  //   setTypingStatusInFirebase(message.trim() ? "typing" : ""); // Send "typing" or clear it based on input
-  // };
-
   // Create a function to update typing status in Firebase for the receiver.
   const setTypingStatusInFirebase = async (status: string) => {
     const typingRef = ref(
       database,
-      `typingStatus/${currentUser}/${receiverName}`
+      `${TYPING_STATUS}/${currentUser}/${receiverName}`
     );
     await update(typingRef, { status }); // Update Firebase with the typing status
   };

@@ -16,6 +16,8 @@ import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/Services/config";
+import CustomTextInput from "@/app/CustomViews/CustomTextInput";
+import { USER_TOKEN, LIGHT_THEME } from "@/app/Constant/Cosntant";
 
 type FormData = {
   email: string;
@@ -36,7 +38,7 @@ const LoginScreen = () => {
   const dispatch = useDispatch(); // Initialize Redux dispatcher
 
   // Dynamically set styles based on theme
-  const styles = theme === "light" ? lightStyles : darkStyles;
+  const styles = theme === USER_TOKEN ? lightStyles : darkStyles;
 
   // Handle form submission for login
   const onSubmit = async (data: FormData) => {
@@ -54,7 +56,7 @@ const LoginScreen = () => {
       const token = await userCredential.user.getIdToken();
 
       // Store token in SecureStore and Redux state
-      await SecureStore.setItemAsync("userToken", token);
+      await SecureStore.setItemAsync(USER_TOKEN, token);
       dispatch(login({ email, token })); // Dispatch Redux action to store user state
 
       navigation.navigate("UserListScreen"); // Navigate to the next screen after successful login
@@ -68,9 +70,11 @@ const LoginScreen = () => {
     <View style={styles.loginContainer}>
       <Text style={styles.title}>{t.login}</Text>
       {loading && <Loader />}
-      <Controller
+      {/* Email Input */}
+      <CustomTextInput
         control={control}
         name="email"
+        placeholder={t.email}
         rules={{
           required: t.emailRequired,
           pattern: {
@@ -78,34 +82,17 @@ const LoginScreen = () => {
             message: t.invalidEmailFormat,
           },
         }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            value={value}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            placeholder={t.email}
-            style={[
-              styles.input,
-              { textAlign: language === "en" ? "left" : "right" },
-            ]}
-            error={!!errors.email}
-            keyboardType="email-address"
-          />
-        )}
+        errors={errors}
+        styles={styles}
+        language={language === "en" ? "en" : "yi"}
+        keyboardType="email-address"
       />
-      {errors.email && (
-        <Text
-          style={[
-            styles.error,
-            { textAlign: language === "en" ? "left" : "right" },
-          ]}
-        >
-          {errors.email.message}
-        </Text>
-      )}
-      <Controller
+
+      {/* Password Input */}
+      <CustomTextInput
         control={control}
         name="password"
+        placeholder={t.password}
         rules={{
           required: t.passwordRequired,
           minLength: {
@@ -113,26 +100,11 @@ const LoginScreen = () => {
             message: t.passwordMinLength,
           },
         }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            value={value}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            style={[
-              styles.input,
-              {
-                textAlign: language === "en" ? "left" : "right",
-              },
-            ]}
-            secureTextEntry
-            placeholder={t.password}
-            error={!!errors.password}
-          />
-        )}
+        errors={errors}
+        styles={styles}
+        language={language === "en" ? "en" : "yi"}
+        secureTextEntry={true}
       />
-      {errors.password && (
-        <Text style={styles.error}>{errors.password.message}</Text>
-      )}
       <Button
         title={t.login}
         onPress={handleSubmit(onSubmit)}

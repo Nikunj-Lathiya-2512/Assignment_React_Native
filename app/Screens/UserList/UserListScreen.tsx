@@ -12,6 +12,12 @@ import { LanguageContext } from "@/app/Context/LanguageConetext";
 
 import lightStyles from "../../CommonStyles/lightStyles";
 import darkStyles from "../../CommonStyles/darkStyles";
+import {
+  DARK_THEME,
+  DEFAULT_USER_STATUS,
+  FIREBASE_DATA_NAME,
+  ONLINE_USER_STATUS,
+} from "@/app/Constant/Cosntant";
 
 interface User {
   id: string;
@@ -28,14 +34,18 @@ const UserListScreen: React.FC = () => {
   const { language } = useContext(LanguageContext) || {};
   const t = translations[language];
 
-  const styles = theme === "dark" ? darkStyles : lightStyles; // Apply dynamic styles based on the current theme
+  const styles = theme === DARK_THEME ? darkStyles : lightStyles; // Apply dynamic styles based on the current theme
 
   useEffect(() => {
     const updateUserStatus = async (status: string) => {
       try {
         const currentUser = auth.currentUser;
         if (currentUser) {
-          const userDocRef = doc(firestore, "users", currentUser.uid);
+          const userDocRef = doc(
+            firestore,
+            FIREBASE_DATA_NAME,
+            currentUser.uid
+          );
           await updateDoc(userDocRef, { status }); // Update the status field in Firestore
         }
       } catch (error) {
@@ -44,18 +54,18 @@ const UserListScreen: React.FC = () => {
     };
 
     // Set the current user's status to "online" when the component mounts
-    updateUserStatus("online");
+    updateUserStatus(ONLINE_USER_STATUS);
 
     // Cleanup function to set the user's status to "offline" when the component unmounts
     return () => {
       // Wait for the status to be set to "offline" before the component unmounts
-      updateUserStatus("offline");
+      updateUserStatus(DEFAULT_USER_STATUS);
     };
   }, []);
 
   useEffect(() => {
     // Listen for changes in the "users" collection in real-time
-    const usersCollectionRef = collection(firestore, "users");
+    const usersCollectionRef = collection(firestore, FIREBASE_DATA_NAME);
     const unsubscribe = onSnapshot(
       usersCollectionRef,
       (snapshot) => {
@@ -113,12 +123,12 @@ const UserListScreen: React.FC = () => {
             style={[
               styles.statusText,
               {
-                color: item.status === "online" ? "green" : "red",
+                color: item.status === t.online ? "green" : "red",
                 textAlign: language === "en" ? "left" : "right",
               },
             ]}
           >
-            {item.status === "online" ? "Online" : "Offline"}
+            {item.status === ONLINE_USER_STATUS ? t.online : t.offline}
           </Text>
         </Card.Content>
       </Card>
